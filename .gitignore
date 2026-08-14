@@ -42,3 +42,10 @@ next-env.d.ts
 # Local AI tool instructions
 AGENTS.md
 CLAUDE.md
+
+/app/generated/prisma
+# Local AI tool directories and metadata
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
