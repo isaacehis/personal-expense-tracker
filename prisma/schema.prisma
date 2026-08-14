@@ -7,15 +7,38 @@ datasource db {
   provider = "postgresql"
 }
 
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String   @db.VarChar(100)
-  email        String   @unique @db.VarChar(255)
-  passwordHash String   @map("password_hash") @db.VarChar(255)
-  currency     String   @default("NGN") @db.Char(3)
-  timezone     String   @default("Africa/Lagos") @db.VarChar(64)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String     @db.VarChar(100)
+  email        String     @unique @db.VarChar(255)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  currency     String     @default("NGN") @db.Char(3)
+  timezone     String     @default("Africa/Lagos") @db.VarChar(64)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  categories   Category[]
 
   @@map("users")
+}
+
+model Category {
+  id        String          @id @default(uuid()) @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  name      String          @db.VarChar(100)
+  type      TransactionType
+  color     String          @default("#64748B") @db.VarChar(7)
+  icon      String          @default("tag") @db.VarChar(50)
+  isDefault Boolean         @default(false) @map("is_default")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name, type])
+  @@index([userId, type])
+  @@map("categories")
 }
