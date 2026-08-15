@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 type FormStatus = "idle" | "loading" | "success" | "error";
@@ -14,6 +15,7 @@ type LoginResponse = {
 };
 
 export default function LoginForm() {
+    const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<FormStatus>("idle");
@@ -58,6 +60,8 @@ export default function LoginForm() {
       );
 
       setPassword("");
+      router.replace("/dashboard");
+router.refresh();
     } catch (error) {
       setStatus("error");
 
