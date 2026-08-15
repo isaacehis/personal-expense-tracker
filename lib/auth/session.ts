@@ -27,6 +27,12 @@ export function createSessionValues() {
   };
 }
 
+export async function getSessionToken() {
+  const cookieStore = await cookies();
+
+  return cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
+}
+
 export async function setSessionCookie(
   token: string,
   expiresAt: Date,
@@ -44,9 +50,22 @@ export async function setSessionCookie(
   });
 }
 
-export async function getCurrentSession() {
+export async function clearSessionCookie() {
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+  cookieStore.set({
+    name: SESSION_COOKIE_NAME,
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    expires: new Date(0),
+    path: "/",
+  });
+}
+
+export async function getCurrentSession() {
+  const token = await getSessionToken();
 
   if (!token) {
     return null;
