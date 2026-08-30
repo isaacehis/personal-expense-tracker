@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ExpenseTrack — Personal Expense Tracking System
 
-## Getting Started
+ExpenseTrack is a submission-ready final-year Computer Science project for securely recording income and expenses, setting monthly category budgets, and analyzing personal financial trends. It is an extension of the original Git history—not a restarted scaffold—and all dashboard values come from PostgreSQL.
 
-First, run the development server:
+> Academic integrity: the project was developed with AI-assisted engineering. The included defense guide explains the design so the student can demonstrate, modify, and discuss it honestly. No claim is made that the work was completed without assistance.
+
+## Main features
+
+- Secure registration, login, logout, current-user lookup, and database sessions
+- Argon2id password hashes, SHA-256 session-token hashes, and HttpOnly cookies
+- Multi-user transaction CRUD with search, type/category/date/month filters, and pagination
+- Monthly category budget CRUD with actual spending and overspending warnings
+- Dashboard totals, six-month income/expense chart, category analysis, budgets, and recent activity
+- Profile, unique email, currency, timezone, and verified password updates
+- Revocation of other sessions after a password change
+- Same-origin and JSON checks, database-backed rate limiting, per-user authorization, and PostgreSQL RLS
+- Responsive light/dark UI, keyboard focus, labels, loading/error/empty states, breadcrumbs, custom 404, and mobile CTA
+- Landing-page CTA, accurate FAQs, privacy policy, favicon, Open Graph image, metadata, robots, sitemap, optional Google Analytics, and Search Console verification
+- Unit tests plus a production-server API isolation smoke test
+
+Local-business maps, directions, customer reviews, LocalBusiness schema, inquiry pages, and social-profile icons are intentionally absent: this is a private finance web application, not a local business, and adding invented locations, reviews, or profiles would be misleading.
+
+## Technology
+
+- Next.js 16.3 App Router, React 19, TypeScript, Tailwind CSS 4
+- PostgreSQL, Prisma ORM 7.9, `@prisma/adapter-pg`
+- Zod 4, Argon2id, Node.js test runner, ESLint, Git
+
+## Quick start
+
+Requirements: Node.js 20+ (LTS recommended), npm, PostgreSQL, and a separate empty shadow database for development migrations.
 
 ```bash
+npm install
+copy .env.example .env
+npm run db:validate
+npm run db:migrate:deploy
+npm run db:generate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Edit `.env` with local credentials first. Never commit it. Open `http://localhost:3000`, create an account, and use the generated default categories.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Quality commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run db:validate
+npm run db:generate
+npm run typecheck
+npm run lint
+npm run test:unit
+npm run build
+```
 
-## Learn More
+To run the API smoke test against a built server:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+npm run start -- -p 3100
+# in another terminal
+set TEST_BASE_URL=http://localhost:3100
+npm run test:api
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The smoke test creates two temporary accounts, proves user isolation and unauthorized rejection, verifies real budget calculations and RLS flags, then deletes the temporary users.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project map
 
-## Deploy on Vercel
+```text
+app/                 routes, protected pages, API handlers, metadata files
+components/          reusable logo, theme, analytics, and chart components
+lib/auth/            password and session security
+lib/validation/      Zod request validation
+lib/                 API guards, rate limit, finance, Prisma, RLS context
+prisma/              schema and ordered PostgreSQL migrations
+tests/               deterministic unit tests
+scripts/             database checks and production API smoke test
+docs/                submission, defense, deployment, and user documents
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Requirements specification](docs/REQUIREMENTS.md)
+- [System architecture](docs/ARCHITECTURE.md)
+- [Database design](docs/DATABASE-DESIGN.md)
+- [API reference](docs/API-REFERENCE.md)
+- [Security explanation](docs/SECURITY.md)
+- [Testing and test cases](docs/TESTING.md)
+- [Vercel/PostgreSQL deployment](docs/DEPLOYMENT.md)
+- [User manual](docs/USER-MANUAL.md)
+- [Project report outline](docs/PROJECT-REPORT-OUTLINE.md)
+- [Supervisor defense guide](docs/DEFENSE-GUIDE.md)
+- [Practical demonstration checklist](docs/DEMO-CHECKLIST.md)
+- [Troubleshooting guide](docs/TROUBLESHOOTING.md)
+
+## Production principles
+
+Only the Next.js server connects to PostgreSQL. There is no browser database key and no admin/service credential in frontend code. `NEXT_PUBLIC_SITE_URL` and the Google Analytics measurement ID are public identifiers; database URLs, migration credentials, salts, and any paid-service secrets remain server-only. Use a restricted non-owner runtime database role so RLS is enforced, keep a separate migration credential, enable managed backups, and configure service billing caps and alerts.
+
+See [deployment instructions](docs/DEPLOYMENT.md) for the exact local-to-production sequence.
