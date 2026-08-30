@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 type FieldName = "name" | "email" | "password" | "confirmPassword";
 
@@ -12,7 +13,7 @@ type RegisterResponse = {
 };
 
 const inputClasses =
-  "mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100";
+  "mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-950";
 
 function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) {
@@ -27,6 +28,7 @@ function FieldError({ messages }: { messages?: string[] }) {
 }
 
 export function RegisterForm() {
+  const router = useRouter();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -79,6 +81,8 @@ export function RegisterForm() {
       );
 
       form.reset();
+      router.replace("/dashboard");
+      router.refresh();
     } catch {
       setFormError(
         "Unable to connect to the server. Check that the development server is running.",
@@ -86,27 +90,6 @@ export function RegisterForm() {
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  if (successMessage) {
-    return (
-      <div
-        className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5"
-        role="status"
-      >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700">
-          ✓
-        </div>
-
-        <h3 className="mt-4 font-semibold text-emerald-950">
-          Account created
-        </h3>
-
-        <p className="mt-2 text-sm leading-6 text-emerald-800">
-          {successMessage} Your secure login session is now active.
-        </p>
-      </div>
-    );
   }
 
   return (
@@ -119,9 +102,10 @@ export function RegisterForm() {
           {formError}
         </div>
       ) : null}
+      {successMessage ? <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{successMessage} Opening your dashboard…</div> : null}
 
       <div>
-        <label htmlFor="name" className="text-sm font-medium text-slate-700">
+        <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-200">
           Full name
         </label>
 
@@ -143,7 +127,7 @@ export function RegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="email" className="text-sm font-medium text-slate-700">
+        <label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-200">
           Email address
         </label>
 
@@ -164,7 +148,7 @@ export function RegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="password" className="text-sm font-medium text-slate-700">
+        <label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-200">
           Password
         </label>
 
@@ -193,7 +177,7 @@ export function RegisterForm() {
       <div>
         <label
           htmlFor="confirmPassword"
-          className="text-sm font-medium text-slate-700"
+          className="text-sm font-medium text-slate-700 dark:text-slate-200"
         >
           Confirm password
         </label>
@@ -217,7 +201,7 @@ export function RegisterForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full items-center justify-center rounded-xl bg-emerald-500 px-4 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? (
           <>

@@ -1,47 +1,34 @@
 import { redirect } from "next/navigation";
 
+import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getCurrentSession } from "@/lib/auth/session";
 
+import { DesktopNavigation, MobileNavigation } from "./app-navigation";
+import { Breadcrumbs } from "./breadcrumbs";
 import LogoutButton from "./logout-button";
 
-type DashboardLayoutProps = Readonly<{
-  children: React.ReactNode;
-}>;
-
-export default async function DashboardLayout({
-  children,
-}: DashboardLayoutProps) {
+export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await getCurrentSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
+  if (!session) redirect("/login");
   const firstName = session.user.name.trim().split(/\s+/)[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-white/10 bg-slate-950">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <div>
-            <p className="text-lg font-bold text-emerald-400">ExpenseTrack</p>
-            <p className="text-sm text-slate-400">
-              Personal finance management
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden text-right sm:block">
-              <p className="font-medium">Hello, {firstName}</p>
-              <p className="text-sm text-slate-400">{session.user.email}</p>
-            </div>
-
+    <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+      <a href="#dashboard-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-emerald-400 focus:px-4 focus:py-2 focus:text-slate-950">Skip to content</a>
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-4 py-4 sm:px-6 lg:px-8">
+          <Logo href="/dashboard" />
+          <DesktopNavigation />
+          <div className="flex items-center gap-2">
+            <div className="hidden text-right xl:block"><p className="text-sm font-bold">{firstName}</p><p className="max-w-44 truncate text-xs text-slate-500 dark:text-slate-400">{session.user.email}</p></div>
+            <ThemeToggle />
             <LogoutButton />
           </div>
         </div>
       </header>
-
-      <main className="mx-auto max-w-7xl px-6 py-10">{children}</main>
+      <main id="dashboard-content" className="mx-auto max-w-7xl px-4 pb-28 pt-7 sm:px-6 lg:px-8 lg:pb-12"><Breadcrumbs />{children}</main>
+      <MobileNavigation />
     </div>
   );
 }

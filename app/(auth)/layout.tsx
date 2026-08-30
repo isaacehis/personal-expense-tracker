@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type AuthLayoutProps = {
   children: ReactNode;
@@ -12,24 +14,14 @@ const features = [
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 lg:grid lg:grid-cols-2">
+    <main className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white lg:grid lg:grid-cols-2">
+      <div className="absolute right-4 top-4 z-20"><ThemeToggle /></div>
       <aside className="relative hidden min-h-screen overflow-hidden bg-slate-950 px-12 py-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
 
         <div className="relative">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500 font-bold">
-              ET
-            </div>
-
-            <div>
-              <p className="font-semibold">ExpenseTrack</p>
-              <p className="text-sm text-slate-400">
-                Personal finance management
-              </p>
-            </div>
-          </div>
+          <Logo />
         </div>
 
         <div className="relative max-w-lg">
@@ -63,7 +55,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         </p>
       </aside>
 
-      <section className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+      <section className="flex min-h-screen items-center justify-center px-4 py-16 sm:px-6">
         <div className="w-full max-w-md">{children}</div>
       </section>
     </main>

@@ -15,7 +15,7 @@ type LoginResponse = {
 };
 
 export default function LoginForm() {
-    const router = useRouter();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<FormStatus>("idle");
@@ -61,7 +61,7 @@ export default function LoginForm() {
 
       setPassword("");
       router.replace("/dashboard");
-router.refresh();
+      router.refresh();
     } catch (error) {
       setStatus("error");
 

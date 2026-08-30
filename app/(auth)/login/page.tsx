@@ -3,7 +3,7 @@ import Link from "next/link";
 import LoginForm from "./login-form";
 
 export const metadata: Metadata = {
-  title: "Sign in | Personal Expense Tracker",
+  title: "Sign in",
   description: "Sign in to manage your personal finances.",
 };
 
@@ -33,6 +33,7 @@ export default function LoginPage() {
           Create one
         </Link>
       </p>
+      <p className="mt-4 text-center text-sm"><Link href="/" className="text-slate-400 hover:text-emerald-400">← Back to home</Link></p>
     </section>
   );
 }

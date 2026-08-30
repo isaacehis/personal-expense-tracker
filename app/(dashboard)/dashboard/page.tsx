@@ -1,215 +1,33 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { CategoryBars, MonthlyBars } from "@/components/analytics-charts";
 import { getCurrentSession } from "@/lib/auth/session";
-import prisma from "@/lib/prisma";
+import { getFinancialOverview } from "@/lib/finance-data";
+
+export const metadata: Metadata = { title: "Dashboard", description: "Your current income, expenses, balance, budgets, and recent activity." };
 
 export default async function DashboardPage() {
   const session = await getCurrentSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
-  const now = new Date();
-
-  const monthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
-
-  const nextMonthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
-  );
-
-  const monthFilter = {
-    gte: monthStart,
-    lt: nextMonthStart,
-  };
-
-  const [incomeSummary, expenseSummary, recentTransactions] =
-    await Promise.all([
-      prisma.transaction.aggregate({
-        where: {
-          userId: session.user.id,
-          type: "INCOME",
-          transactionDate: monthFilter,
-        },
-        _sum: {
-          amount: true,
-        },
-      }),
-
-      prisma.transaction.aggregate({
-        where: {
-          userId: session.user.id,
-          type: "EXPENSE",
-          transactionDate: monthFilter,
-        },
-        _sum: {
-          amount: true,
-        },
-      }),
-
-      prisma.transaction.findMany({
-        where: {
-          userId: session.user.id,
-          transactionDate: monthFilter,
-        },
-        select: {
-          id: true,
-          type: true,
-          amount: true,
-          description: true,
-          transactionDate: true,
-          category: {
-            select: {
-              name: true,
-              color: true,
-            },
-          },
-        },
-        orderBy: [
-          {
-            transactionDate: "desc",
-          },
-          {
-            createdAt: "desc",
-          },
-        ],
-        take: 5,
-      }),
-    ]);
-
-  const totalIncome = Number(incomeSummary._sum.amount ?? 0);
-  const totalExpenses = Number(expenseSummary._sum.amount ?? 0);
-  const balance = totalIncome - totalExpenses;
-
-  const currencyFormatter = new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: session.user.currency,
-    minimumFractionDigits: 2,
-  });
-
-  const monthLabel = new Intl.DateTimeFormat("en-NG", {
-    month: "long",
-    year: "numeric",
-    timeZone: session.user.timezone,
-  }).format(now);
+  if (!session) redirect("/login");
+  const overview = await getFinancialOverview(session.user.id, session.user.timezone);
+  const format = (value: number) => new Intl.NumberFormat("en", { style: "currency", currency: session.user.currency, maximumFractionDigits: 2 }).format(value);
+  const monthLabel = new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: session.user.timezone }).format(new Date());
 
   return (
     <section>
-      <p className="font-semibold uppercase tracking-[0.3em] text-emerald-400">
-        Dashboard
-      </p>
-
-      <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-        Welcome, {session.user.name}
-      </h1>
-
-      <p className="mt-4 text-lg text-slate-400">
-        Your financial overview for {monthLabel}
-      </p>
-
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
-        <SummaryCard
-          label="Total income"
-          amount={currencyFormatter.format(totalIncome)}
-          colour="text-emerald-400"
-        />
-
-        <SummaryCard
-          label="Total expenses"
-          amount={currencyFormatter.format(totalExpenses)}
-          colour="text-red-400"
-        />
-
-        <SummaryCard
-          label="Balance"
-          amount={currencyFormatter.format(balance)}
-          colour={balance >= 0 ? "text-emerald-400" : "text-red-400"}
-        />
-      </div>
-
-      <div className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-          Recent transactions
-        </p>
-
-        {recentTransactions.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-white/15 p-8 text-center">
-            <h2 className="text-2xl font-bold">No transactions this month</h2>
-
-            <p className="mt-3 text-slate-400">
-              Your income and expense records will appear here.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-6 space-y-4">
-            {recentTransactions.map((transaction) => {
-              const amount = Number(transaction.amount);
-              const isIncome = transaction.type === "INCOME";
-
-              return (
-                <article
-                  key={transaction.id}
-                  className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/20 p-5 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-start gap-4">
-                    <span
-                      className="mt-1 h-3 w-3 rounded-full"
-                      style={{
-                        backgroundColor: transaction.category.color,
-                      }}
-                    />
-
-                    <div>
-                      <h2 className="font-semibold">
-                        {transaction.description}
-                      </h2>
-
-                      <p className="mt-1 text-sm text-slate-400">
-                        {transaction.category.name} ·{" "}
-                        {new Intl.DateTimeFormat("en-NG", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          timeZone: "UTC",
-                        }).format(transaction.transactionDate)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <p
-                    className={`text-lg font-bold ${
-                      isIncome ? "text-emerald-400" : "text-red-400"
-                    }`}
-                  >
-                    {isIncome ? "+" : "-"}
-                    {currencyFormatter.format(amount)}
-                  </p>
-                </article>
-              );
-            })}
-          </div>
-        )}
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-black uppercase tracking-[.25em] text-emerald-600">Dashboard</p><h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Welcome, {session.user.name}</h1><p className="mt-2 text-slate-500 dark:text-slate-400">Your financial overview for {monthLabel}</p></div><Link href="/transactions?new=1" className="rounded-xl bg-emerald-500 px-5 py-3 text-center font-bold text-slate-950 hover:bg-emerald-400">+ Add transaction</Link></div>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><SummaryCard label="Income" value={format(overview.income)} tone="text-emerald-600" /><SummaryCard label="Expenses" value={format(overview.expenses)} tone="text-rose-500" /><SummaryCard label="Balance" value={format(overview.balance)} tone={overview.balance >= 0 ? "text-sky-600" : "text-rose-500"} /><SummaryCard label="Budget alerts" value={String(overview.budgets.filter((budget) => budget.percentage > 100).length)} tone="text-amber-500" /></div>
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]"><Panel title="Six-month tracking" link="/analytics"><MonthlyBars data={overview.sixMonthSeries} format={format} /></Panel><Panel title="Expenses by category" link="/analytics"><CategoryBars data={overview.categoryTotals.slice(0, 5)} format={format} /></Panel></div>
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <Panel title="Budget progress" link="/budgets">{overview.budgets.length === 0 ? <Empty copy="No budgets for this month." href="/budgets" action="Create a budget" /> : <div className="space-y-5">{overview.budgets.slice(0, 4).map((budget) => <div key={budget.id}><div className="flex justify-between gap-3 text-sm"><span className="font-semibold">{budget.category.name}</span><span className={budget.percentage > 100 ? "font-bold text-rose-500" : "text-slate-500 dark:text-slate-400"}>{format(budget.spent)} / {format(budget.amount)}</span></div><div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div className={`h-full rounded-full ${budget.percentage > 100 ? "bg-rose-500" : budget.percentage >= 80 ? "bg-amber-400" : "bg-emerald-500"}`} style={{ width: `${Math.min(100, budget.percentage)}%` }} /></div></div>)}</div>}</Panel>
+        <Panel title="Recent transactions" link="/transactions">{overview.recentTransactions.length === 0 ? <Empty copy="No transactions yet." href="/transactions?new=1" action="Add the first one" /> : <div className="divide-y divide-slate-100 dark:divide-slate-800">{overview.recentTransactions.map((item) => <article key={item.id} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"><div className="min-w-0"><p className="truncate font-semibold">{item.description}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400"><span className="mr-2 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: item.category.color }} />{item.category.name} · {new Intl.DateTimeFormat("en", { day: "2-digit", month: "short", timeZone: "UTC" }).format(item.transactionDate)}</p></div><p className={`shrink-0 font-bold ${item.type === "INCOME" ? "text-emerald-600" : "text-rose-500"}`}>{item.type === "INCOME" ? "+" : "-"}{format(Number(item.amount))}</p></article>)}</div>}</Panel>
       </div>
     </section>
   );
 }
 
-type SummaryCardProps = {
-  label: string;
-  amount: string;
-  colour: string;
-};
-
-function SummaryCard({ label, amount, colour }: SummaryCardProps) {
-  return (
-    <article className="rounded-3xl border border-white/10 bg-white/5 p-6">
-      <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-        {label}
-      </p>
-
-      <p className={`mt-4 text-3xl font-bold ${colour}`}>{amount}</p>
-    </article>
-  );
-}
+function SummaryCard({ label, value, tone }: { label: string; value: string; tone: string }) { return <article className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"><p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</p><p className={`mt-3 break-words text-2xl font-black ${tone}`}>{value}</p></article>; }
+function Panel({ title, link, children }: { title: string; link: string; children: React.ReactNode }) { return <section className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-7"><div className="mb-6 flex items-center justify-between"><h2 className="text-lg font-bold">{title}</h2><Link href={link} className="text-sm font-bold text-emerald-600 hover:text-emerald-500">View all</Link></div>{children}</section>; }
+function Empty({ copy, href, action }: { copy: string; href: string; action: string }) { return <div className="rounded-2xl border border-dashed border-slate-300 p-7 text-center dark:border-slate-700"><p className="text-slate-500 dark:text-slate-400">{copy}</p><Link href={href} className="mt-3 inline-flex font-bold text-emerald-600">{action}</Link></div>; }

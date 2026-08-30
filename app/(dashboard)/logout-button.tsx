@@ -36,9 +36,10 @@ export default function LogoutButton() {
         type="button"
         onClick={handleLogout}
         disabled={isLoggingOut}
-        className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium transition hover:border-emerald-400 hover:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Sign out of ExpenseTrack"
+        className="rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200"
       >
-        {isLoggingOut ? "Signing out..." : "Sign out"}
+        {isLoggingOut ? "Signing out..." : <><span className="hidden sm:inline">Sign out</span><span className="sm:hidden" aria-hidden="true">↪</span></>}
       </button>
 
       {error ? (
