@@ -5,24 +5,32 @@ import {
   getSessionToken,
   hashSessionToken,
 } from "@/lib/auth/session";
-import prisma from "@/lib/prisma";
+import { apiError, requireSameOrigin } from "@/lib/api";
+import { getCurrentSession } from "@/lib/auth/session";
+import { withUserContext } from "@/lib/database-context";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const token = await getSessionToken();
+    const originError = requireSameOrigin(request);
+    if (originError) return originError;
 
-    if (token) {
-      await prisma.session.updateMany({
-        where: {
-          tokenHash: hashSessionToken(token),
-          revokedAt: null,
-        },
-        data: {
-          revokedAt: new Date(),
-        },
-      });
+    const token = await getSessionToken();
+    const session = await getCurrentSession();
+
+    if (token && session) {
+      await withUserContext(session.user.id, (database) =>
+        database.session.updateMany({
+          where: {
+            id: session.id,
+            userId: session.user.id,
+            tokenHash: hashSessionToken(token),
+            revokedAt: null,
+          },
+          data: { revokedAt: new Date() },
+        }),
+      );
     }
 
     await clearSessionCookie();
@@ -38,13 +46,10 @@ export async function POST() {
   } catch (error) {
     console.error("Logout failed:", error);
 
-    return NextResponse.json(
-      {
-        message: "Logout failed. Please try again.",
-      },
-      {
-        status: 500,
-      },
+    return apiError(
+      500,
+      "INTERNAL_ERROR",
+      "Logout failed. Please try again.",
     );
   }
 }

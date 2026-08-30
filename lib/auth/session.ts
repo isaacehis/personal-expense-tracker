@@ -73,29 +73,31 @@ export async function getCurrentSession() {
 
   const tokenHash = hashSessionToken(token);
 
-  const session = await prisma.session.findFirst({
-    where: {
-      tokenHash,
-      revokedAt: null,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-    select: {
-      id: true,
-      expiresAt: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          currency: true,
-          timezone: true,
-          createdAt: true,
+  return prisma.$transaction(async (database) => {
+    await database.$executeRaw`SELECT set_config('app.current_session_hash', ${tokenHash}, true)`;
+
+    return database.session.findFirst({
+      where: {
+        tokenHash,
+        revokedAt: null,
+        expiresAt: {
+          gt: new Date(),
         },
       },
-    },
+      select: {
+        id: true,
+        expiresAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            currency: true,
+            timezone: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
   });
-
-  return session;
 }

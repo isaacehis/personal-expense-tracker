@@ -14,7 +14,7 @@ function isValidDateString(value: string) {
   );
 }
 
-const amountSchema = z.preprocess(
+export const moneyAmountSchema = z.preprocess(
   (value) => {
     if (typeof value === "number") {
       return value.toString();
@@ -35,7 +35,7 @@ const amountSchema = z.preprocess(
     }),
 );
 
-const transactionDateSchema = z
+export const transactionDateSchema = z
   .string()
   .trim()
   .regex(
@@ -49,7 +49,7 @@ const transactionDateSchema = z
 export const createTransactionSchema = z.object({
   type: transactionTypeSchema,
 
-  amount: amountSchema,
+  amount: moneyAmountSchema,
 
   description: z
     .string()
@@ -74,3 +74,23 @@ export const createTransactionSchema = z.object({
 export type CreateTransactionInput = z.infer<
   typeof createTransactionSchema
 >;
+
+export const updateTransactionSchema = createTransactionSchema;
+
+export const transactionQuerySchema = z.object({
+  search: z.string().trim().max(100).optional().default(""),
+  type: z.enum(["INCOME", "EXPENSE"]).optional(),
+  categoryId: z.string().uuid().optional(),
+  dateFrom: transactionDateSchema.optional(),
+  dateTo: transactionDateSchema.optional(),
+  month: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/)
+    .refine((value) => {
+      const month = Number(value.slice(5));
+      return month >= 1 && month <= 12;
+    })
+    .optional(),
+  page: z.coerce.number().int().min(1).max(100_000).default(1),
+  pageSize: z.coerce.number().int().min(5).max(50).default(10),
+});

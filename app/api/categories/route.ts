@@ -1,43 +1,30 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentSession } from "@/lib/auth/session";
-import prisma from "@/lib/prisma";
+import { apiError } from "@/lib/api";
+import { withUserContext } from "@/lib/database-context";
 
 export async function GET() {
   try {
     const session = await getCurrentSession();
 
     if (!session) {
-      return NextResponse.json(
-        {
-          message: "Authentication is required.",
-        },
-        {
-          status: 401,
-        },
-      );
+      return apiError(401, "AUTHENTICATION_REQUIRED", "Authentication is required.");
     }
 
-    const categories = await prisma.category.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        color: true,
-        icon: true,
-      },
-      orderBy: [
-        {
-          type: "asc",
+    const categories = await withUserContext(session.user.id, (database) =>
+      database.category.findMany({
+        where: { userId: session.user.id },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          color: true,
+          icon: true,
         },
-        {
-          name: "asc",
-        },
-      ],
-    });
+        orderBy: [{ type: "asc" }, { name: "asc" }],
+      }),
+    );
 
     return NextResponse.json({
       categories,
@@ -45,13 +32,6 @@ export async function GET() {
   } catch (error) {
     console.error("Unable to load categories:", error);
 
-    return NextResponse.json(
-      {
-        message: "Unable to load categories.",
-      },
-      {
-        status: 500,
-      },
-    );
+    return apiError(500, "INTERNAL_ERROR", "Unable to load categories.");
   }
 }

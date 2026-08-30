@@ -1,19 +1,13 @@
 import { getCurrentSession } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api";
 
 export async function GET() {
   try {
     const session = await getCurrentSession();
 
     if (!session) {
-      return NextResponse.json(
-        {
-          message: "Authentication is required.",
-        },
-        {
-          status: 401,
-        },
-      );
+      return apiError(401, "AUTHENTICATION_REQUIRED", "Authentication is required.");
     }
 
     return NextResponse.json(
@@ -30,13 +24,6 @@ export async function GET() {
   } catch (error) {
     console.error("Current user lookup failed:", error);
 
-    return NextResponse.json(
-      {
-        message: "Unable to retrieve the current user.",
-      },
-      {
-        status: 500,
-      },
-    );
+    return apiError(500, "INTERNAL_ERROR", "Unable to retrieve the current user.");
   }
 }

@@ -6,70 +6,74 @@ import {
   createSessionValues,
   setSessionCookie,
 } from "@/lib/auth/session";
-import prisma from "@/lib/prisma";
 import { loginSchema } from "@/lib/validation/auth";
 import { NextResponse } from "next/server";
+import { apiError, readJson, validateMutationRequest } from "@/lib/api";
+import { withLoginEmail, withUserContext } from "@/lib/database-context";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 function invalidCredentialsResponse() {
-  return NextResponse.json(
-    {
-      message: "The email address or password is incorrect.",
-    },
-    {
-      status: 401,
-    },
+  return apiError(
+    401,
+    "AUTHENTICATION_REQUIRED",
+    "The email address or password is incorrect.",
   );
 }
 
 export async function POST(request: Request) {
   try {
-    let requestBody: unknown;
+    const requestError = validateMutationRequest(request);
+    if (requestError) return requestError;
 
-    try {
-      requestBody = await request.json();
-    } catch {
-      return NextResponse.json(
-        {
-          message: "The request body must contain valid JSON.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
+    const requestBody = await readJson(request);
+    if (requestBody.error) return requestBody.error;
 
-    const validationResult = loginSchema.safeParse(requestBody);
+    const validationResult = loginSchema.safeParse(requestBody.data);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          message: "Please correct the highlighted fields.",
-          errors: validationResult.error.flatten().fieldErrors,
-        },
-        {
-          status: 400,
-        },
+      return apiError(
+        400,
+        "INVALID_REQUEST",
+        "Please correct the highlighted fields.",
+        validationResult.error.flatten().fieldErrors,
       );
     }
 
     const { email, password } = validationResult.data;
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        passwordHash: true,
-        currency: true,
-        timezone: true,
-        createdAt: true,
-      },
+    const rateLimit = await checkRateLimit(request, {
+      action: "login",
+      identity: email,
+      limit: 8,
+      windowMs: 15 * 60 * 1_000,
+      blockMs: 15 * 60 * 1_000,
     });
+
+    if (!rateLimit.allowed) {
+      const response = apiError(
+        429,
+        "RATE_LIMITED",
+        "Too many sign-in attempts. Please try again later.",
+      );
+      response.headers.set("Retry-After", String(rateLimit.retryAfterSeconds));
+      return response;
+    }
+
+    const user = await withLoginEmail(email, (database) =>
+      database.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          passwordHash: true,
+          currency: true,
+          timezone: true,
+          createdAt: true,
+        },
+      }),
+    );
 
     if (!user) {
       await hashPassword(password);
@@ -87,13 +91,16 @@ export async function POST(request: Request) {
 
     const sessionValues = createSessionValues();
 
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        tokenHash: sessionValues.tokenHash,
-        expiresAt: sessionValues.expiresAt,
-      },
-    });
+    await withUserContext(user.id, (database) =>
+      database.session.create({
+        data: {
+          userId: user.id,
+          tokenHash: sessionValues.tokenHash,
+          expiresAt: sessionValues.expiresAt,
+        },
+        select: { id: true },
+      }),
+    );
 
     await setSessionCookie(
       sessionValues.token,
@@ -119,13 +126,10 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Login failed:", error);
 
-    return NextResponse.json(
-      {
-        message: "Login failed. Please try again.",
-      },
-      {
-        status: 500,
-      },
+    return apiError(
+      500,
+      "INTERNAL_ERROR",
+      "Login failed. Please try again.",
     );
   }
 }

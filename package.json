@@ -4,9 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit",
+    "test:unit": "node --require ./scripts/test-runtime.cjs --import tsx --test tests/index.test.ts",
+    "test:api": "node --require ./scripts/test-runtime.cjs --import tsx scripts/api-smoke.ts",
+    "db:validate": "prisma validate",
+    "db:generate": "prisma generate",
+    "db:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",

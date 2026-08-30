@@ -99,3 +99,17 @@ model Session {
   @@index([expiresAt])
   @@map("sessions")
 }
+
+model RateLimit {
+  id           String    @id @default(uuid()) @db.Uuid
+  keyHash      String    @map("key_hash") @db.Char(64)
+  action       String    @db.VarChar(32)
+  hitCount     Int       @default(1) @map("hit_count")
+  windowStart  DateTime  @default(now()) @map("window_start")
+  blockedUntil DateTime? @map("blocked_until")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@unique([keyHash, action])
+  @@index([windowStart])
+  @@map("rate_limits")
+}

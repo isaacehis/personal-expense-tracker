@@ -4,9 +4,14 @@ import {
   createSessionValues,
   setSessionCookie,
 } from "@/lib/auth/session";
-import prisma from "@/lib/prisma";
 import { registerSchema } from "@/lib/validation/auth";
 import { NextResponse } from "next/server";
+import { apiError, readJson, validateMutationRequest } from "@/lib/api";
+import {
+  withLoginEmail,
+  withRegistrationContext,
+} from "@/lib/database-context";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -99,61 +104,61 @@ const DEFAULT_CATEGORIES = [
 
 export async function POST(request: Request) {
   try {
-    let requestBody: unknown;
+    const requestError = validateMutationRequest(request);
+    if (requestError) return requestError;
 
-    try {
-      requestBody = await request.json();
-    } catch {
-      return NextResponse.json(
-        {
-          message: "The request body must contain valid JSON.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
+    const requestBody = await readJson(request);
+    if (requestBody.error) return requestBody.error;
 
-    const validationResult = registerSchema.safeParse(requestBody);
+    const validationResult = registerSchema.safeParse(requestBody.data);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          message: "Please correct the highlighted fields.",
-          errors: validationResult.error.flatten().fieldErrors,
-        },
-        {
-          status: 400,
-        },
+      return apiError(
+        400,
+        "INVALID_REQUEST",
+        "Please correct the highlighted fields.",
+        validationResult.error.flatten().fieldErrors,
       );
     }
 
     const { name, email, password } = validationResult.data;
-
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      select: {
-        id: true,
-      },
+    const rateLimit = await checkRateLimit(request, {
+      action: "register",
+      identity: email,
+      limit: 5,
+      windowMs: 60 * 60 * 1_000,
+      blockMs: 30 * 60 * 1_000,
     });
 
+    if (!rateLimit.allowed) {
+      const response = apiError(
+        429,
+        "RATE_LIMITED",
+        "Too many registration attempts. Please try again later.",
+      );
+      response.headers.set("Retry-After", String(rateLimit.retryAfterSeconds));
+      return response;
+    }
+
+    const existingUser = await withLoginEmail(email, (database) =>
+      database.user.findUnique({
+        where: { email },
+        select: { id: true },
+      }),
+    );
+
     if (existingUser) {
-      return NextResponse.json(
-        {
-          message: "An account with this email address already exists.",
-        },
-        {
-          status: 409,
-        },
+      return apiError(
+        409,
+        "CONFLICT",
+        "An account could not be created with these details.",
       );
     }
 
     const passwordHash = await hashPassword(password);
     const sessionValues = createSessionValues();
 
-    const user = await prisma.$transaction(async (database) => {
+    const user = await withRegistrationContext(async (database) => {
       const createdUser = await database.user.create({
         data: {
           name,
@@ -169,6 +174,8 @@ export async function POST(request: Request) {
           createdAt: true,
         },
       });
+
+      await database.$executeRaw`SELECT set_config('app.current_user_id', ${createdUser.id}, true)`;
 
       await database.category.createMany({
         data: DEFAULT_CATEGORIES.map((category) => ({
@@ -207,25 +214,19 @@ export async function POST(request: Request) {
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      return NextResponse.json(
-        {
-          message: "An account with this email address already exists.",
-        },
-        {
-          status: 409,
-        },
+      return apiError(
+        409,
+        "CONFLICT",
+        "An account could not be created with these details.",
       );
     }
 
     console.error("Registration failed:", error);
 
-    return NextResponse.json(
-      {
-        message: "Registration failed. Please try again.",
-      },
-      {
-        status: 500,
-      },
+    return apiError(
+      500,
+      "INTERNAL_ERROR",
+      "Registration failed. Please try again.",
     );
   }
 }
