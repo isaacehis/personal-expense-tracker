@@ -78,7 +78,7 @@ export default function LoginForm() {
       <div>
         <label
           htmlFor="email"
-          className="mb-2 block text-sm font-semibold text-slate-200"
+          className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200"
         >
           Email address
         </label>
@@ -92,14 +92,14 @@ export default function LoginForm() {
           onChange={(event) => setEmail(event.target.value)}
           disabled={status === "loading"}
           placeholder="student@example.com"
-          className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-950"
         />
       </div>
 
       <div>
         <label
           htmlFor="password"
-          className="mb-2 block text-sm font-semibold text-slate-200"
+          className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200"
         >
           Password
         </label>
@@ -113,7 +113,7 @@ export default function LoginForm() {
           onChange={(event) => setPassword(event.target.value)}
           disabled={status === "loading"}
           placeholder="Enter your password"
-          className="w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-950"
         />
       </div>
 
@@ -123,8 +123,8 @@ export default function LoginForm() {
           aria-live="polite"
           className={`rounded-xl border px-4 py-3 text-sm ${
             status === "success"
-              ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300"
-              : "border-red-400/40 bg-red-400/10 text-red-300"
+              ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
+              : "border-red-300 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
           }`}
         >
           {message}

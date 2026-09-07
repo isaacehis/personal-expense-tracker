@@ -11,20 +11,6 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <div>
-      <div className="mb-8 lg:hidden">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 font-bold text-white">
-            ET
-          </div>
-          <div>
-            <p className="font-semibold">ExpenseTrack</p>
-            <p className="text-sm text-slate-500">
-              Personal finance management
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 sm:p-8">
         <div className="mb-7">
           <p className="text-sm font-semibold text-emerald-600">

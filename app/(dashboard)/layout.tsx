@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
     <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       <a href="#dashboard-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-emerald-400 focus:px-4 focus:py-2 focus:text-slate-950">Skip to content</a>
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-3 sm:gap-5 sm:px-6 sm:py-4 lg:px-8">
           <Logo href="/dashboard" />
           <DesktopNavigation />
           <div className="flex items-center gap-2">
@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
           </div>
         </div>
       </header>
-      <main id="dashboard-content" className="mx-auto max-w-7xl px-4 pb-28 pt-7 sm:px-6 lg:px-8 lg:pb-12"><Breadcrumbs />{children}</main>
+      <main id="dashboard-content" className="mx-auto max-w-7xl px-3 pb-28 pt-5 sm:px-6 sm:pt-7 lg:px-8 lg:pb-12"><Breadcrumbs />{children}</main>
       <MobileNavigation />
     </div>
   );
