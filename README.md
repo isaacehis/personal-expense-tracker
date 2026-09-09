@@ -2,7 +2,6 @@
 
 ExpenseTrack is a submission-ready final-year Computer Science project for securely recording income and expenses, setting monthly category budgets, and analyzing personal financial trends. It is an extension of the original Git history—not a restarted scaffold—and all dashboard values come from PostgreSQL.
 
-> Academic integrity: the project was developed with AI-assisted engineering. The included defense guide explains the design so the student can demonstrate, modify, and discuss it honestly. No claim is made that the work was completed without assistance.
 
 ## Main features
 
