@@ -5,7 +5,7 @@ export const emailSchema = z
   .trim()
   .toLowerCase()
   .max(255, "Email must not exceed 255 characters")
-  .email("Enter a valid email address");
+  .email("Enter a valid email address, such as name@example.com");
 
 export const registrationPasswordSchema = z
   .string()
@@ -35,6 +35,21 @@ export const loginSchema = z.object({
     .min(1, "Password is required")
     .max(128, "Password must not exceed 128 characters"),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "The reset link is missing").max(2_048),
+    newPassword: registrationPasswordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 const currencySchema = z.enum([
   "NGN",

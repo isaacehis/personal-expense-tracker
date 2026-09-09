@@ -24,6 +24,12 @@ Production intentionally refuses login/registration without `RATE_LIMIT_SALT`. A
 - Check the session row is unrevoked and its hashed token matches; never log the raw token.
 - Confirm server clock and database clock are correct.
 
+## Password-reset email is unavailable
+
+- Add `RESEND_API_KEY`, `PASSWORD_RESET_FROM`, and a 32-character `PASSWORD_RESET_SECRET` to the deployment environment, then redeploy.
+- Verify the sender/domain with the email provider and check its delivery logs and spam folder.
+- Never expose these values with a `NEXT_PUBLIC_` prefix.
+
 ## State-changing API returns 403 or 415
 
 - Send requests from the same origin as the API.

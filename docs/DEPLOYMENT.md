@@ -36,6 +36,9 @@ Copy names from `.env.example` into Vercel Environment Variables:
 
 - `DATABASE_URL`: restricted runtime/pooler URL; server-only.
 - `RATE_LIMIT_SALT`: at least 32 random characters; server-only.
+- `PASSWORD_RESET_SECRET`: a separate random value of at least 32 characters; server-only.
+- `RESEND_API_KEY`: server-only email API credential used for password recovery.
+- `PASSWORD_RESET_FROM`: sender on a domain verified by the email provider.
 - `NEXT_PUBLIC_SITE_URL`: final HTTPS origin without trailing slash.
 - `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID`: optional GA4 `G-...` public identifier.
 - `GOOGLE_SITE_VERIFICATION`: optional Search Console token.
@@ -48,7 +51,7 @@ Copy names from `.env.example` into Vercel Environment Variables:
 2. In a trusted deployment terminal/CI step, temporarily provide the migration-owner URL as `DATABASE_URL` and run `npm run db:migrate:deploy`.
 3. Restore/use the restricted runtime `DATABASE_URL` in Vercel.
 4. Deploy the exact tested commit. `npm run build` generates Prisma client and runs Next build; it intentionally does not mutate production schema.
-5. Smoke-test registration, login, transaction CRUD, budgets, analytics, settings, user isolation, logout, `/robots.txt`, and `/sitemap.xml`.
+5. Smoke-test registration, login, password recovery, transaction CRUD, budgets, analytics, settings, user isolation, logout, `/robots.txt`, and `/sitemap.xml`.
 
 Never run `migrate dev`, reset, forced db push, or data-loss flags in production.
 

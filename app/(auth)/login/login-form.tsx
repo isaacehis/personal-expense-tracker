@@ -1,12 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+
+import { loginSchema } from "@/lib/validation/auth";
 
 type FormStatus = "idle" | "loading" | "success" | "error";
 
 type LoginResponse = {
   message?: string;
+  errors?: FieldErrors;
   user?: {
     id: string;
     name: string;
@@ -14,27 +18,55 @@ type LoginResponse = {
   };
 };
 
+type FieldErrors = Partial<Record<"email" | "password", string[]>>;
+
+const inputClasses =
+  "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-red-400 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-950 dark:aria-[invalid=true]:focus:ring-red-950";
+
+function FieldError({ id, messages }: { id: string; messages?: string[] }) {
+  if (!messages?.length) return null;
+
+  return (
+    <p id={id} className="mt-2 text-sm text-red-600 dark:text-red-300" role="alert">
+      {messages[0]}
+    </p>
+  );
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<FormStatus>("idle");
   const [message, setMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (!normalizedEmail || !password) {
+    const validationResult = loginSchema.safeParse({
+      email: normalizedEmail,
+      password,
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.flatten().fieldErrors;
+      setFieldErrors(errors);
       setStatus("error");
-      setMessage("Please enter both your email address and password.");
+      setMessage(
+        errors.email?.[0] ??
+          errors.password?.[0] ??
+          "Please check your sign-in details.",
+      );
       return;
     }
 
     try {
       setStatus("loading");
       setMessage("");
+      setFieldErrors({});
 
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -51,6 +83,7 @@ export default function LoginForm() {
       const data = (await response.json()) as LoginResponse;
 
       if (!response.ok) {
+        setFieldErrors(data.errors ?? {});
         throw new Error(data.message ?? "Unable to sign in.");
       }
 
@@ -87,22 +120,41 @@ export default function LoginForm() {
           id="email"
           name="email"
           type="email"
-          autoComplete="email"
+          autoComplete="username"
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            setFieldErrors((current) => ({ ...current, email: undefined }));
+          }}
           disabled={status === "loading"}
           placeholder="student@example.com"
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-950"
+          inputMode="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
+          maxLength={255}
+          aria-invalid={Boolean(fieldErrors.email)}
+          aria-describedby={fieldErrors.email ? "email-error" : undefined}
+          className={inputClasses}
         />
+        <FieldError id="email-error" messages={fieldErrors.email} />
       </div>
 
       <div>
-        <label
-          htmlFor="password"
-          className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200"
-        >
-          Password
-        </label>
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <label
+            htmlFor="password"
+            className="block text-sm font-semibold text-slate-700 dark:text-slate-200"
+          >
+            Password
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-sm font-semibold text-emerald-600 hover:text-emerald-500 dark:text-emerald-400"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         <input
           id="password"
@@ -110,11 +162,19 @@ export default function LoginForm() {
           type="password"
           autoComplete="current-password"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            setFieldErrors((current) => ({ ...current, password: undefined }));
+          }}
           disabled={status === "loading"}
           placeholder="Enter your password"
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-emerald-950"
+          required
+          maxLength={128}
+          aria-invalid={Boolean(fieldErrors.password)}
+          aria-describedby={fieldErrors.password ? "password-error" : undefined}
+          className={inputClasses}
         />
+        <FieldError id="password-error" messages={fieldErrors.password} />
       </div>
 
       {message && (

@@ -6,6 +6,8 @@ All responses are JSON. Protected routes require the `expense_tracker_session` H
 |---|---|---|---|
 | POST | `/api/auth/register` | Create user, defaults, session | `name,email,password,confirmPassword` |
 | POST | `/api/auth/login` | Verify credentials and create session | `email,password` |
+| POST | `/api/auth/forgot-password` | Email an expiring reset link | `email` |
+| POST | `/api/auth/reset-password` | Set a new password and revoke sessions | `token,newPassword,confirmPassword` |
 | POST | `/api/auth/logout` | Revoke current session and clear cookie | none |
 | GET | `/api/auth/me` | Safe current user and expiry | none |
 | GET | `/api/categories` | Owned categories | none |
@@ -30,6 +32,6 @@ All responses are JSON. Protected routes require the `expense_tracker_session` H
 - `409`: duplicate email or budget
 - `413/415`: body too large or wrong content type
 - `429`: authentication limit exceeded; read `Retry-After`
-- `500`: generic internal failure; details stay in server logs
+- `500/503`: generic internal failure or unavailable email service; details stay in server logs
 
 Amounts are returned as two-decimal strings to preserve monetary representation. Dates are ISO JSON values. Password hashes and session-token hashes are never response fields.

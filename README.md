@@ -6,7 +6,7 @@ ExpenseTrack is a submission-ready final-year Computer Science project for secur
 
 ## Main features
 
-- Secure registration, login, logout, current-user lookup, and database sessions
+- Secure registration, login, logout, password recovery, current-user lookup, and database sessions
 - Argon2id password hashes, SHA-256 session-token hashes, and HttpOnly cookies
 - Multi-user transaction CRUD with search, type/category/date/month filters, and pagination
 - Monthly category budget CRUD with actual spending and overspending warnings
@@ -23,7 +23,7 @@ Local-business maps, directions, customer reviews, LocalBusiness schema, inquiry
 ## Technology
 
 - Next.js 16.3 App Router, React 19, TypeScript, Tailwind CSS 4
-- PostgreSQL, Prisma ORM 7.9, `@prisma/adapter-pg`
+- PostgreSQL, Prisma ORM 7.10, `@prisma/adapter-pg`
 - Zod 4, Argon2id, Node.js test runner, ESLint, Git
 
 ## Quick start
@@ -40,6 +40,8 @@ npm run dev
 ```
 
 Edit `.env` with local credentials first. Never commit it. Open `http://localhost:3000`, create an account, and use the generated default categories.
+
+Password-recovery email uses Resend. Configure `RESEND_API_KEY`, `PASSWORD_RESET_FROM`, and `PASSWORD_RESET_SECRET` before enabling the production reset flow.
 
 ## Quality commands
 

@@ -2,7 +2,7 @@
 
 ## Start and sign in
 
-Open the deployed HTTPS URL. Select **Get started**, enter a name, email, and password of at least 12 characters. Registration signs you in and creates standard income/expense categories. Returning users select **Sign in**. Use **Sign out** on a shared device.
+Open the deployed HTTPS URL. Select **Get started**, enter a name, email, and password of at least 12 characters. Registration signs you in and creates standard income/expense categories. Returning users select **Sign in** and enter their email address—not their display name. If the password is forgotten, select **Forgot password?**, submit the account email, and use the emailed link within 30 minutes. Use **Sign out** on a shared device.
 
 ## Dashboard
 

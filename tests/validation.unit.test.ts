@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { changePasswordSchema, profileSchema, registerSchema } from "../lib/validation/auth";
+import { changePasswordSchema, forgotPasswordSchema, profileSchema, registerSchema, resetPasswordSchema } from "../lib/validation/auth";
 import { budgetSchema } from "../lib/validation/budget";
 import { createTransactionSchema, transactionQuerySchema } from "../lib/validation/transaction";
 
@@ -26,4 +26,11 @@ test("profile and password settings reject invalid changes", () => {
   assert.equal(profileSchema.safeParse({ name: "Ada Student", email: "ada@example.com", currency: "NGN", timezone: "Africa/Lagos" }).success, true);
   assert.equal(profileSchema.safeParse({ name: "A", email: "bad", currency: "BTC", timezone: "Mars/Base" }).success, false);
   assert.equal(changePasswordSchema.safeParse({ currentPassword: "OldPassword123!", newPassword: "NewPassword123!", confirmPassword: "different" }).success, false);
+});
+
+test("password recovery validates email, token, and matching passwords", () => {
+  assert.equal(forgotPasswordSchema.parse({ email: " ADA@EXAMPLE.COM " }).email, "ada@example.com");
+  assert.equal(forgotPasswordSchema.safeParse({ email: "Ada Student" }).success, false);
+  assert.equal(resetPasswordSchema.safeParse({ token: "signed-token", newPassword: "NewPassword123!", confirmPassword: "NewPassword123!" }).success, true);
+  assert.equal(resetPasswordSchema.safeParse({ token: "", newPassword: "NewPassword123!", confirmPassword: "different" }).success, false);
 });

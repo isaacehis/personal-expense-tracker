@@ -4,14 +4,14 @@ No application can honestly be described as “100% secure.” ExpenseTrack appl
 
 ## Implemented controls
 
-- Authentication: generic login errors; Argon2id with explicit memory/time settings; a fake hash path reduces user-existence timing differences.
+- Authentication: generic login errors; Argon2id with explicit memory/time settings; a fake hash path reduces user-existence timing differences. Password-reset links expire after 30 minutes, are HMAC-signed, and become invalid as soon as the password changes.
 - Sessions: 256-bit random tokens; only SHA-256 hashes in PostgreSQL; seven-day expiry; revocation; HttpOnly, SameSite=Lax, path-scoped cookies with Secure enabled in production.
 - Authorization: every finance query includes authenticated `userId`; updates/deletes use compound ID-and-owner predicates; category/type ownership is checked before a write.
 - Database: foreign keys, unique/check constraints, RLS on every table, transaction-local context, parameterized Prisma tagged queries, and no unsafe query construction.
 - Request boundary: maximum body indication, valid JSON, Zod server validation, required JSON content type, and Origin/Referer comparison for state changes.
-- Abuse protection: registration/login identifiers are salted one-way hashes in PostgreSQL; serializable rate-limit updates work across horizontally scaled servers.
+- Abuse protection: registration, login, and password-reset identifiers are salted one-way hashes in PostgreSQL; serializable rate-limit updates work across horizontally scaled servers. Reset requests use the same response for existing and unknown email addresses.
 - Browser: nonce CSP, frame denial, MIME sniffing prevention, restricted permissions, strict referrer policy, COOP, HSTS, and no framework signature header.
-- Secrets: browsers receive no database key. `DATABASE_URL`, shadow/migration credentials, and `RATE_LIMIT_SALT` are server-only. Public site URL and GA measurement ID are identifiers, not privileged keys.
+- Secrets: browsers receive no database key. Database credentials, `RATE_LIMIT_SALT`, `PASSWORD_RESET_SECRET`, and the email API key are server-only. Public site URL and GA measurement ID are identifiers, not privileged keys.
 - Data minimization: explicit Prisma `select` lists exclude password/session hashes. Server logs record errors, not request credentials.
 
 ## RLS and role model

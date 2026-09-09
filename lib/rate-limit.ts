@@ -4,7 +4,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma";
 
 type RateLimitOptions = {
-  action: "login" | "register";
+  action: "login" | "register" | "password-reset";
   identity: string;
   limit: number;
   windowMs: number;
