@@ -103,17 +103,17 @@ export default function HomePage() {
           <ul className="grid gap-3 text-sm sm:grid-cols-2">{['Same-origin mutation checks','Database-backed rate limits','Secure production cookies','Per-user ownership checks','Validated JSON inputs','Security response headers'].map((item) => <li key={item} className="rounded-2xl border border-slate-200 p-4 font-semibold dark:border-slate-800"><span className="mr-2 text-emerald-500" aria-hidden="true">✓</span>{item}</li>)}</ul>
         </section>
 
-        <section id="faq" className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
+        <section id="faq" className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
           <h2 className="text-center text-3xl font-black tracking-tight sm:text-4xl">Frequently asked questions</h2>
           <div className="mt-10 divide-y divide-slate-200 rounded-3xl border border-slate-200 px-6 dark:divide-slate-800 dark:border-slate-800">
             {faqs.map(([question, answer]) => <details key={question} className="group py-5"><summary className="cursor-pointer list-none pr-6 font-bold marker:hidden">{question}<span className="float-right text-emerald-500 group-open:rotate-45" aria-hidden="true">+</span></summary><p className="mt-3 max-w-3xl leading-7 text-slate-600 dark:text-slate-300">{answer}</p></details>)}
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8"><div className="rounded-[2rem] bg-emerald-500 px-6 py-12 text-center text-slate-950 sm:px-12"><h2 className="text-3xl font-black tracking-tight sm:text-4xl">Ready for a clearer view of your finances?</h2><p className="mx-auto mt-4 max-w-2xl text-emerald-950">Create your private account and record your first transaction in minutes.</p><Link href="/register" className="mt-7 inline-flex rounded-xl bg-slate-950 px-6 py-3.5 font-bold text-white hover:bg-slate-800">Start tracking</Link></div></section>
+        <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 sm:pb-20 lg:px-8"><div className="rounded-[2rem] bg-emerald-500 px-6 py-10 text-center text-slate-950 sm:px-12 sm:py-12"><h2 className="text-3xl font-black tracking-tight sm:text-4xl">Ready for a clearer view of your finances?</h2><p className="mx-auto mt-4 max-w-2xl text-emerald-950">Create your private account and record your first transaction in minutes.</p><Link href="/register" className="mt-7 inline-flex rounded-xl bg-slate-950 px-6 py-3.5 font-bold text-white hover:bg-slate-800">Start tracking</Link></div></section>
       </main>
 
-      <footer className="border-t border-slate-200 dark:border-slate-800"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"><p>© {year} ExpenseTrack. Private finance tracking made simple.</p><div className="flex gap-5"><Link href="/privacy" className="hover:text-emerald-600">Privacy</Link><Link href="/login" className="hover:text-emerald-600">Sign in</Link><Link href="/register" className="hover:text-emerald-600">Register</Link></div></div></footer>
+      <footer className="border-t border-slate-200 dark:border-slate-800"><div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 py-8 text-center text-sm text-slate-500 sm:flex-row sm:justify-between sm:px-6 sm:text-left lg:px-8"><div><Logo /><p className="mt-3">© {year} ExpenseTrack. Private finance tracking made simple.</p></div><nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-5 gap-y-2 font-semibold sm:justify-end"><a href="#features" className="hover:text-emerald-600">Features</a><a href="#security" className="hover:text-emerald-600">Security</a><Link href="/privacy" className="hover:text-emerald-600">Privacy</Link></nav></div></footer>
     </div>
   );
 }

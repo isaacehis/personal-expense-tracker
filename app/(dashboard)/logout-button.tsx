@@ -37,9 +37,9 @@ export default function LogoutButton() {
         onClick={handleLogout}
         disabled={isLoggingOut}
         aria-label="Sign out of ExpenseTrack"
-        className="rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200"
+        className="rounded-full border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 sm:text-sm"
       >
-        {isLoggingOut ? "Signing out..." : <><span className="hidden sm:inline">Sign out</span><span className="sm:hidden" aria-hidden="true">↪</span></>}
+        {isLoggingOut ? "Signing out..." : "Sign out"}
       </button>
 
       {error ? (
